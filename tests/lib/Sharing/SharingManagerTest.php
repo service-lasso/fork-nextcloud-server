@@ -19,8 +19,6 @@ use NCU\Sharing\ShareState;
 use NCU\Sharing\ShareUserStatus;
 use NCU\Sharing\Source\ShareSource;
 use OC\Sharing\SharingManager;
-use OCP\IURLGenerator;
-use OCP\IUserManager;
 use OCP\L10N\IFactory;
 use OCP\Server;
 use PHPUnit\Framework\Attributes\Group;
@@ -73,7 +71,7 @@ final class SharingManagerTest extends AbstractSharingManagerTests {
 			}
 
 			/** @psalm-suppress ArgumentTypeCoercion */
-			$recipients = ShareRecipient::formatMultiple($this->registry, Server::get(IFactory::class), Server::get(IURLGenerator::class), Server::get(IUserManager::class), $this->manager->searchRecipients($accessContext, $filterRecipientTypeClasses, $query, $limit, $offset, $forShare));
+			$recipients = ShareRecipient::formatMultiple($this->registry, Server::get(IFactory::class), $this->urlGenerator, $this->userManager, $this->manager->searchRecipients($accessContext, $filterRecipientTypeClasses, $query, $limit, $offset, $forShare));
 			$this->dbConnection->commit();
 			return $recipients;
 		} catch (Exception $exception) {
@@ -88,7 +86,7 @@ final class SharingManagerTest extends AbstractSharingManagerTests {
 			$this->dbConnection->beginTransaction();
 			$share = $this->manager->createShare($accessContext);
 			$this->assertShareSyncedWithDb($accessContext, $share);
-			$share = $share->format($this->registry, Server::get(IFactory::class), Server::get(IURLGenerator::class), Server::get(IUserManager::class), $accessContext);
+			$share = $share->format($this->registry, Server::get(IFactory::class), $this->urlGenerator, $this->userManager, $accessContext);
 			$this->dbConnection->commit();
 			return $share;
 		} catch (Exception $exception) {
@@ -103,7 +101,7 @@ final class SharingManagerTest extends AbstractSharingManagerTests {
 			$this->dbConnection->beginTransaction();
 			$share = $this->manager->updateShareState($accessContext, $share, $state);
 			$this->assertShareSyncedWithDb($accessContext, $share);
-			$share = $share->format($this->registry, Server::get(IFactory::class), Server::get(IURLGenerator::class), Server::get(IUserManager::class), $accessContext);
+			$share = $share->format($this->registry, Server::get(IFactory::class), $this->urlGenerator, $this->userManager, $accessContext);
 			$this->dbConnection->commit();
 			return $share;
 		} catch (Exception $exception) {
@@ -118,7 +116,7 @@ final class SharingManagerTest extends AbstractSharingManagerTests {
 			$this->dbConnection->beginTransaction();
 			$share = $this->manager->updateShareUserStatus($accessContext, $share, $userStatus);
 			$this->assertShareSyncedWithDb($accessContext, $share);
-			$share = $share->format($this->registry, Server::get(IFactory::class), Server::get(IURLGenerator::class), Server::get(IUserManager::class), $accessContext);
+			$share = $share->format($this->registry, Server::get(IFactory::class), $this->urlGenerator, $this->userManager, $accessContext);
 			$this->dbConnection->commit();
 			return $share;
 		} catch (Exception $exception) {
@@ -133,7 +131,7 @@ final class SharingManagerTest extends AbstractSharingManagerTests {
 			$this->dbConnection->beginTransaction();
 			$share = $this->manager->addShareSource($accessContext, $share, $source);
 			$this->assertShareSyncedWithDb($accessContext, $share);
-			$share = $share->format($this->registry, Server::get(IFactory::class), Server::get(IURLGenerator::class), Server::get(IUserManager::class), $accessContext);
+			$share = $share->format($this->registry, Server::get(IFactory::class), $this->urlGenerator, $this->userManager, $accessContext);
 			$this->dbConnection->commit();
 			return $share;
 		} catch (Exception $exception) {
@@ -149,7 +147,7 @@ final class SharingManagerTest extends AbstractSharingManagerTests {
 			$this->assertShareSyncedWithDb($accessContext, $share);
 			$share = $this->manager->removeShareSource($accessContext, $share, $source);
 			$this->assertShareSyncedWithDb($accessContext, $share);
-			$share = $share->format($this->registry, Server::get(IFactory::class), Server::get(IURLGenerator::class), Server::get(IUserManager::class), $accessContext);
+			$share = $share->format($this->registry, Server::get(IFactory::class), $this->urlGenerator, $this->userManager, $accessContext);
 			$this->dbConnection->commit();
 			return $share;
 		} catch (Exception $exception) {
@@ -164,7 +162,7 @@ final class SharingManagerTest extends AbstractSharingManagerTests {
 			$this->dbConnection->beginTransaction();
 			$share = $this->manager->addShareRecipient($accessContext, $share, $recipient);
 			$this->assertShareSyncedWithDb($accessContext, $share);
-			$share = $share->format($this->registry, Server::get(IFactory::class), Server::get(IURLGenerator::class), Server::get(IUserManager::class), $accessContext);
+			$share = $share->format($this->registry, Server::get(IFactory::class), $this->urlGenerator, $this->userManager, $accessContext);
 			$this->dbConnection->commit();
 			return $share;
 		} catch (Exception $exception) {
@@ -179,7 +177,7 @@ final class SharingManagerTest extends AbstractSharingManagerTests {
 			$this->dbConnection->beginTransaction();
 			$share = $this->manager->removeShareRecipient($accessContext, $share, $recipient);
 			$this->assertShareSyncedWithDb($accessContext, $share);
-			$share = $share->format($this->registry, Server::get(IFactory::class), Server::get(IURLGenerator::class), Server::get(IUserManager::class), $accessContext);
+			$share = $share->format($this->registry, Server::get(IFactory::class), $this->urlGenerator, $this->userManager, $accessContext);
 			$this->dbConnection->commit();
 			return $share;
 		} catch (Exception $exception) {
@@ -194,7 +192,7 @@ final class SharingManagerTest extends AbstractSharingManagerTests {
 			$this->dbConnection->beginTransaction();
 			$share = $this->manager->updateShareRecipientSecret($accessContext, $share, $recipient, $secret);
 			$this->assertShareSyncedWithDb($accessContext, $share);
-			$share = $share->format($this->registry, Server::get(IFactory::class), Server::get(IURLGenerator::class), Server::get(IUserManager::class), $accessContext);
+			$share = $share->format($this->registry, Server::get(IFactory::class), $this->urlGenerator, $this->userManager, $accessContext);
 			$this->dbConnection->commit();
 			return $share;
 		} catch (Exception $exception) {
@@ -209,7 +207,7 @@ final class SharingManagerTest extends AbstractSharingManagerTests {
 			$this->dbConnection->beginTransaction();
 			$share = $this->manager->updateShareProperty($accessContext, $share, $property);
 			$this->assertShareSyncedWithDb($accessContext, $share);
-			$share = $share->format($this->registry, Server::get(IFactory::class), Server::get(IURLGenerator::class), Server::get(IUserManager::class), $accessContext);
+			$share = $share->format($this->registry, Server::get(IFactory::class), $this->urlGenerator, $this->userManager, $accessContext);
 			$this->dbConnection->commit();
 			return $share;
 		} catch (Exception $exception) {
@@ -224,7 +222,7 @@ final class SharingManagerTest extends AbstractSharingManagerTests {
 			$this->dbConnection->beginTransaction();
 			$share = $this->manager->updateSharePermission($accessContext, $share, $permission);
 			$this->assertShareSyncedWithDb($accessContext, $share);
-			$share = $share->format($this->registry, Server::get(IFactory::class), Server::get(IURLGenerator::class), Server::get(IUserManager::class), $accessContext);
+			$share = $share->format($this->registry, Server::get(IFactory::class), $this->urlGenerator, $this->userManager, $accessContext);
 			$this->dbConnection->commit();
 			return $share;
 		} catch (Exception $exception) {
@@ -239,7 +237,7 @@ final class SharingManagerTest extends AbstractSharingManagerTests {
 			$this->dbConnection->beginTransaction();
 			$share = $this->manager->updateShareRecipientPermission($accessContext, $share, $recipient, $permission);
 			$this->assertShareSyncedWithDb($accessContext, $share);
-			$share = $share->format($this->registry, Server::get(IFactory::class), Server::get(IURLGenerator::class), Server::get(IUserManager::class), $accessContext);
+			$share = $share->format($this->registry, Server::get(IFactory::class), $this->urlGenerator, $this->userManager, $accessContext);
 			$this->dbConnection->commit();
 			return $share;
 		} catch (Exception $exception) {
@@ -255,7 +253,7 @@ final class SharingManagerTest extends AbstractSharingManagerTests {
 			/** @psalm-suppress ArgumentTypeCoercion */
 			$share = $this->manager->selectSharePermissionPreset($accessContext, $share, $permissionPresetClass);
 			$this->assertShareSyncedWithDb($accessContext, $share);
-			$share = $share->format($this->registry, Server::get(IFactory::class), Server::get(IURLGenerator::class), Server::get(IUserManager::class), $accessContext);
+			$share = $share->format($this->registry, Server::get(IFactory::class), $this->urlGenerator, $this->userManager, $accessContext);
 			$this->dbConnection->commit();
 			return $share;
 		} catch (Exception $exception) {
@@ -281,7 +279,7 @@ final class SharingManagerTest extends AbstractSharingManagerTests {
 	protected function getShare(ShareAccessContext $accessContext, string $id): array {
 		try {
 			$this->dbConnection->beginTransaction();
-			$share = $this->manager->getShare($accessContext, $id)->format($this->registry, Server::get(IFactory::class), Server::get(IURLGenerator::class), Server::get(IUserManager::class), $accessContext);
+			$share = $this->manager->getShare($accessContext, $id)->format($this->registry, Server::get(IFactory::class), $this->urlGenerator, $this->userManager, $accessContext);
 			$this->dbConnection->commit();
 			return $share;
 		} catch (Exception $exception) {
@@ -297,7 +295,7 @@ final class SharingManagerTest extends AbstractSharingManagerTests {
 			/** @psalm-suppress ArgumentTypeCoercion */
 			$shares = $this->manager->getShares($accessContext, $filterSourceTypeClass, $filterSourceTypeValue, $filterState, $filterUserStatus, $lastShareID, $limit);
 			$this->dbConnection->commit();
-			return Share::formatMultiple($this->registry, Server::get(IFactory::class), Server::get(IURLGenerator::class), Server::get(IUserManager::class), $accessContext, $shares);
+			return Share::formatMultiple($this->registry, Server::get(IFactory::class), $this->urlGenerator, $this->userManager, $accessContext, $shares);
 		} catch (Exception $exception) {
 			$this->dbConnection->rollBack();
 			throw  $exception;

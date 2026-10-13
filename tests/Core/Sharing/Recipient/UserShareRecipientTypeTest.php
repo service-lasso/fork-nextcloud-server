@@ -15,16 +15,22 @@ use NCU\Sharing\ISharingRegistry;
 use NCU\Sharing\Recipient\ShareRecipient;
 use NCU\Sharing\ShareAccessContext;
 use OC\Core\Sharing\Recipient\UserShareRecipientType;
+use OC\Route\Router;
 use OC\Sharing\SharingManager;
+use OC\URLGenerator;
 use OC\User\Database;
 use OCA\DAV\CardDAV\CardDavBackend;
 use OCA\DAV\CardDAV\ContactsManager;
 use OCP\Contacts\IManager;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\ICacheFactory;
+use OCP\IConfig;
 use OCP\IDBConnection;
+use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
+use OCP\IUserSession;
 use OCP\Server;
 use PHPUnit\Framework\Attributes\Group;
 use Test\TestCase;
@@ -68,9 +74,25 @@ final class UserShareRecipientTypeTest extends TestCase {
 
 		$this->manager = Server::get(ISharingManager::class);
 
+		$urlGenerator = $this->getMockBuilder(URLGenerator::class)
+			->onlyMethods(['getBaseUrl'])
+			->setConstructorArgs([
+				Server::get(IConfig::class),
+				$this->createMock(IUserSession::class),
+				Server::get(ICacheFactory::class),
+				Server::get(IRequest::class),
+				Server::get(Router::class),
+			])->getMock();
+		$urlGenerator->method('getBaseUrl')
+			->willReturn('http://localhost');
+
 		$userManager = Server::get(IUserManager::class);
 		$userManager->clearBackends();
 		$userManager->registerBackend(new Database());
+
+		$userManagerReflection = new \ReflectionClass($userManager);
+		$urlGeneratorProperty = $userManagerReflection->getProperty('urlGenerator');
+		$urlGeneratorProperty->setValue($userManager, $urlGenerator);
 
 		$this->user1 = $this->createUser($userManager, 'user1', 'password');
 		$this->user2 = $this->createUser($userManager, 'user2', 'password');

@@ -21,15 +21,22 @@ use NCU\Sharing\ShareUser;
 use NCU\Sharing\ShareUserStatus;
 use NCU\Sharing\Source\ShareSource;
 use OC\Core\Sharing\Permission\ReshareSharePermissionType;
+use OC\Route\Router;
 use OC\Sharing\SharingManager;
+use OC\URLGenerator;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\HintException;
+use OCP\ICacheFactory;
+use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Interaction\Actions\ShareAction;
 use OCP\Interaction\InteractionRestrictedException;
 use OCP\Interaction\RestrictInteractionEvent;
+use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
+use OCP\IUserSession;
 use OCP\L10N\IFactory;
 use OCP\Server;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -150,6 +157,10 @@ abstract class AbstractSharingManagerTests extends TestCase {
 
 	protected IFactory $l10nFactory;
 
+	protected IURLGenerator $urlGenerator;
+
+	protected IUserManager $userManager;
+
 	private function parseTime(mixed $timestampMs): \DateTimeImmutable {
 		$timestampMs = (float)$timestampMs;
 		$time = \DateTimeImmutable::createFromFormat('U.u', number_format($timestampMs / 1000.0, 3, '.', ''));
@@ -169,25 +180,40 @@ abstract class AbstractSharingManagerTests extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 
+		$this->urlGenerator = $this->getMockBuilder(URLGenerator::class)
+			->onlyMethods(['getBaseUrl'])
+			->setConstructorArgs([
+				Server::get(IConfig::class),
+				$this->createMock(IUserSession::class),
+				Server::get(ICacheFactory::class),
+				Server::get(IRequest::class),
+				Server::get(Router::class),
+			])->getMock();
+		$this->urlGenerator->method('getBaseUrl')
+			->willReturn('http://localhost');
+
 		$this->dbConnection = Server::get(IDBConnection::class);
 
 		$this->manager = Server::get(ISharingManager::class);
 
 		$this->l10nFactory = Server::get(IFactory::class);
 
-		$userManager = Server::get(IUserManager::class);
+		$this->userManager = Server::get(IUserManager::class);
+		$userManagerReflection = new \ReflectionClass($this->userManager);
+		$urlGeneratorProperty = $userManagerReflection->getProperty('urlGenerator');
+		$urlGeneratorProperty->setValue($this->userManager, $this->urlGenerator);
 
-		$owner = $userManager->createUser('owner', 'password');
+		$owner = $this->userManager->createUser('owner', 'password');
 		$this->assertNotFalse($owner);
 		$this->owner = $owner;
 		$this->owner->setDisplayName('Owner');
 
-		$user1 = $userManager->createUser('user1', 'password');
+		$user1 = $this->userManager->createUser('user1', 'password');
 		$this->assertNotFalse($user1);
 		$this->user1 = $user1;
 		$this->user1->setDisplayName('User 1');
 
-		$user2 = $userManager->createUser('user2', 'password');
+		$user2 = $this->userManager->createUser('user2', 'password');
 		$this->assertNotFalse($user2);
 		$this->user2 = $user2;
 		$this->user2->setDisplayName('User 2');

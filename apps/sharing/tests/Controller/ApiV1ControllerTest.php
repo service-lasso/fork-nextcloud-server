@@ -78,8 +78,8 @@ final class ApiV1ControllerTest extends AbstractSharingManagerTests {
 			Server::get(ISharingManager::class),
 			$this->registry,
 			Server::get(IFactory::class),
-			Server::get(IURLGenerator::class),
-			Server::get(IUserManager::class),
+			$this->urlGenerator,
+			$this->userManager,
 			Server::get(IDBConnection::class),
 		);
 
