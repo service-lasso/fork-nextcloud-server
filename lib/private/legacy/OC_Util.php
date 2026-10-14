@@ -484,7 +484,7 @@ class OC_Util {
 	public static function checkDataDirectoryValidity($dataDirectory) {
 		$l = \OC::$server->getL10N('lib');
 		$errors = [];
-		if ($dataDirectory[0] !== '/') {
+		if ($dataDirectory[0] !== '/' && !preg_match('/^[A-Za-z]:[\\\\\\/]/', $dataDirectory)) {
 			$errors[] = [
 				'error' => $l->t('Your data directory must be an absolute path.'),
 				'hint' => $l->t('Check the value of "datadirectory" in your configuration.')
