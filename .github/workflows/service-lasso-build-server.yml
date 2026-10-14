@@ -38,6 +38,17 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Resolve version
+        id: resolve
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${{ github.event.inputs.version }}"
+          if [ -z "$version" ]; then
+            version="$(cat SERVICE-LASSO-VERSION 2>/dev/null || echo 34.0.4)"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - name: Apply Service Lasso Windows compatibility patches
         shell: bash
         run: |
@@ -77,7 +88,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          version="${{ github.event.inputs.version || '34.0.4' }}"
+          version="${{ steps.resolve.outputs.version }}"
           rm -rf staging
           mkdir -p staging/nextcloud
           rsync -a --exclude '.git' --exclude 'staging' --exclude '.github' --exclude 'tests' ./ staging/nextcloud/
@@ -100,8 +111,8 @@ jobs:
           || (github.event_name == 'workflow_dispatch' && inputs.publish)
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ github.event.inputs.version }}-service-lasso.${{ github.run_number }}
-          name: Service Lasso Nextcloud ${{ github.event.inputs.version }} (run ${{ github.run_number }})
+          tag_name: v${{ steps.resolve.outputs.version }}-service-lasso.${{ github.run_number }}
+          name: Service Lasso Nextcloud ${{ steps.resolve.outputs.version }} (run ${{ github.run_number }})
           files: |
             nextcloud-*-service-lasso.zip
             nextcloud-*-service-lasso.zip.sha256
