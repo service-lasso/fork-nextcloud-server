@@ -567,7 +567,7 @@ class Local extends Common {
 		if ($realPath) {
 			$realPath = $realPath . '/';
 		}
-		if (substr($realPath, 0, $this->dataDirLength) === $this->realDataDir) {
+		if (str_replace('\\', '/', substr($realPath, 0, $this->dataDirLength)) === str_replace('\\', '/', $this->realDataDir)) {
 			return $fullPath;
 		}
 
