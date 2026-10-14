@@ -18,24 +18,29 @@ Why a fork is needed:
   Service Lasso changes there.
 - **All Service Lasso branches use the `servicelasso/` prefix** so they never
   collide with upstream. Examples: `servicelasso/master`,
-  `servicelasso/nextcloud-34`, `servicelasso/feat/fix-webdav`.
-- Version branches are created from the matching upstream tag (for example
-  `servicelasso/nextcloud-34` from `v34.0.4`); `servicelasso/master` tracks
-  upstream `master` and is the integration branch for Service Lasso work.
+  `servicelasso/feat/fix-webdav`, `servicelasso/fix/...`.
+- **`servicelasso/master` is our master.** It is based on the Nextcloud version
+  we currently ship (`v34.0.4`) and carries the Service Lasso pipeline and the
+  Windows compatibility patches. Every other Service Lasso branch (features,
+  fixes, version bumps) merges into `servicelasso/master`, and releases are cut
+  from it.
 - This directory holds the reviewable source of the workflow and notes that are
-  landed on those branches.
+  landed on `servicelasso/master`.
 
 ## Build and release
 
-`service-lasso-build-server.yml` (triggers on `servicelasso/**` and
+`service-lasso-build-server.yml` (triggers on pushes to `servicelasso/master`,
+`servicelasso/nextcloud-*`, `servicelasso/feat/**`, `servicelasso/fix/**`, and on
 `workflow_dispatch`):
 
 1. checks out the branch with `submodules: recursive` (fetches `nextcloud/3rdparty`);
-2. applies the two documented Windows compatibility patches at build time;
+2. applies the documented Windows compatibility patches at build time (a no-op
+   once the patches are committed on the branch);
 3. stages the working tree as `nextcloud/` and produces
    `nextcloud-<version>-service-lasso.zip` plus a SHA-256;
-4. uploads the archive as a workflow artifact, and on a `publish=true`
-   `workflow_dispatch` publishes it as a GitHub release.
+4. uploads the archive as a workflow artifact, and publishes it as a GitHub
+   release on every push to `servicelasso/master` (and on a `publish=true`
+   `workflow_dispatch`).
 
 ## Consuming the fork archive
 
