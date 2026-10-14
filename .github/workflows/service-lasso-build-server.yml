@@ -113,6 +113,7 @@ jobs:
         with:
           tag_name: v${{ steps.resolve.outputs.version }}-service-lasso.${{ github.run_number }}
           name: Service Lasso Nextcloud ${{ steps.resolve.outputs.version }} (run ${{ github.run_number }})
+          target_commitish: ${{ github.sha }}
           files: |
             nextcloud-*-service-lasso.zip
             nextcloud-*-service-lasso.zip.sha256
