@@ -41,9 +41,12 @@ Why a fork is needed:
 4. uploads the archive as a workflow artifact on every push, and publishes it as
    a GitHub release on a `workflow_dispatch` with `publish=true`.
 
-Note: the `service-lasso` organisation restricts `GITHUB_TOKEN` write access to
-manually dispatched runs, so pushes build and validate but do not publish. After
-merging into `servicelasso/master`, cut the release by dispatching the workflow:
+Note: the `service-lasso` organisation restricts `GITHUB_TOKEN` write access
+(`Write permissions for workflows are disabled by the organization`), so the
+release step can fail with `403 Resource not accessible by integration`. Either
+the organisation must allow write permissions for Actions, or the workflow must
+publish with a PAT/App token secret. Until then, cut the release by dispatching
+the workflow (or publish the built artifact with an authenticated `gh`):
 
 ```powershell
 gh workflow run service-lasso-build-server.yml `
