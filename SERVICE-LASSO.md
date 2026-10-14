@@ -38,9 +38,18 @@ Why a fork is needed:
    once the patches are committed on the branch);
 3. stages the working tree as `nextcloud/` and produces
    `nextcloud-<version>-service-lasso.zip` plus a SHA-256;
-4. uploads the archive as a workflow artifact, and publishes it as a GitHub
-   release on every push to `servicelasso/master` (and on a `publish=true`
-   `workflow_dispatch`).
+4. uploads the archive as a workflow artifact on every push, and publishes it as
+   a GitHub release on a `workflow_dispatch` with `publish=true`.
+
+Note: the `service-lasso` organisation restricts `GITHUB_TOKEN` write access to
+manually dispatched runs, so pushes build and validate but do not publish. After
+merging into `servicelasso/master`, cut the release by dispatching the workflow:
+
+```powershell
+gh workflow run service-lasso-build-server.yml `
+  --repo service-lasso/fork-nextcloud-server `
+  --ref servicelasso/master -f version=34.0.4 -f publish=true
+```
 
 ## Consuming the fork archive
 
